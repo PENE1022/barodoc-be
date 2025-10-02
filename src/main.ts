@@ -13,5 +13,6 @@ async function bootstrap() {
   
   await app.listen(3000);
   console.log('BaroDoc API http://localhost:3000  |  Socket NS: /barodoc');
+  console.log('DB Ping -> Get http://localhost:3000/health/db');
 }
 bootstrap();

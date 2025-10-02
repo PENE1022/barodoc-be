@@ -12,6 +12,6 @@
   socket.on("disconnect", () => log("[socket] disconnected"));
 
   // 이벤트 수신 (BaroDoc 규약)
-  socket.on("bd:ticket.created", (t) => log("[CREATED] " + JSON.stringify(t)));
-  socket.on("bd:ticket.called",  (t) => log("[CALLED]  " + JSON.stringify(t)));
+  socket.on("bd:ticket.created", (t) => log("[번호 발급] " + JSON.stringify(t)));
+  socket.on("bd:ticket.called",  (t) => log("[호출됨]  " + JSON.stringify(t)));
 </script>
