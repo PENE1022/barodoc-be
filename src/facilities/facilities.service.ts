@@ -1,18 +1,117 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
+import { v4 as uuid} from 'uuid';
+
 import { Facility } from './entities/facilities.entity';
 import { FacilityQueryDto } from './dto/facility.query.dto';
+
 import { BusinessHour } from './entities/business-hour.entity';
-import { BusinessHourDto } from './dto/create-facility.dto'
+import { BusinessHourDto, CreateFacilityDto } from './dto/create-facility.dto'
+import { Hospital } from 'src/hospital/hospital.entity';
+import { Pharmacy } from 'src/pharmacy/pharmacy.entity';
+import { FacilityType } from './facility.types';
 
 @Injectable()
 export class FacilitiesService {
   constructor(
+    private readonly ds: DataSource,
     @InjectRepository(Facility) private readonly facilityRepo: Repository<Facility>,
     @InjectRepository(BusinessHour) private readonly hourRepo: Repository<BusinessHour>,
+    @InjectRepository(Hospital) private readonly hospitalRepo: Repository<Hospital>,
+    @InjectRepository(Pharmacy) private readonly pharmacyRepo: Repository<Pharmacy>,
+
   ) {}
 
+  /* 
+    시설 (병원/약국) + 영업 시간을 Insert
+      - DB 스키마: facilities / hospital / pharmacy / business_hours
+  */
+
+  async createCascade(dto: CreateFacilityDto) {
+    const facId = uuid(); // 시설 ID는 uuid 로 생성
+
+    try {
+      const result = await this.ds.transaction(async (em) => {
+        // 시설 DB 먼저 삽입
+        const facility = em.create(Facility, {
+          id: facId,
+          type: dto.type,
+          name: dto.name,
+          phone: dto.phone ?? null,
+          roadAddress: dto.roadAddress,
+          detailAddress: dto.detailAddress,
+          lat: dto.lat,
+          lng: dto.lng,
+          isActive: dto.isActive ?? true,
+        });
+        await em.save(facility);
+
+        // 병원 / 약국 전용
+        let hospital: Hospital | null = null;
+        let pharmacy: Pharmacy | null = null;
+
+        // 병원
+        if (dto.type === FacilityType.HOSPITAL && dto.hospital) {
+          hospital = em.create(Hospital, {
+            facilityId: facId, // 기본키 = 외래키 지정
+            licenseNo: dto.hospital.licenseNo ?? null,
+            level: dto.hospital.level ?? null,
+            departments: dto.hospital.departments ?? [], // 진료 과목 json 데이터
+          });
+          await em.save(hospital);
+        }
+
+        // 약국
+        if (dto.type === FacilityType.PHARMACY && dto.pharmacy) {
+          pharmacy = em.create(Pharmacy, {
+            facilityId: facId,
+            isDeliveryAvailable: dto.pharmacy?.isDeliveryAvailable,
+          });
+          await em.save(pharmacy);
+        }
+
+        // 영업 시간(배열)
+      let hours: BusinessHour[] = [];
+
+      if (dto.hours?.length) {
+        hours = dto.hours.map((h: BusinessHourDto) =>
+        em.create(BusinessHour, {
+          facility: { id: facId } as Facility,
+          dayOfWeek: h.dayOfWeek,
+          openAt: this.toTime(h.openAt),
+          closeAt: this.toTime(h.closeAt),
+          breakStart: this.toTime(h.breakStart),
+          breakEnd: this.toTime(h.breakEnd),
+          is24: h.is24h,
+          openOnHolidays: h.openOnHolidays,
+        }),
+        );
+        await em.save(hours);
+      }
+
+      return { facility, hospital, pharmacy, hours }; 
+      });
+
+      return {
+        ...result.facility,
+        hospital: result.hospital ?? undefined,
+        pharmacy: result.pharmacy ?? undefined,
+        hours: result.hours ?? [],
+      }
+
+    } catch(error) {
+      if(error instanceof QueryFailedError) {
+        if((error as any).error === 1062) {
+          throw new ConflictException('중복된 키 입니다.');
+        }
+      }
+
+      throw error;
+    } 
+  }
+
+  // 시설 전체 조회 기능
   async findAll(qp: FacilityQueryDto) {
     const { q, type, page = 1, pageSize = 20, active } = qp;
 

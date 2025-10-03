@@ -5,12 +5,31 @@ import {
 import { Type } from 'class-transformer';
 import { FacilityType } from '../facility.types';
 
+// 병원 세부
+export class HospitalDetailDto {
+  @IsOptional() @IsString()
+  licenseNo?: string;
+
+  @IsOptional() @IsString()
+  level?: string;
+
+  @IsOptional() @IsArray()
+  @IsString({ each: true })          // 각 요소 문자열 검증
+  departments?: string[];            // DB: JSON
+}
+
+// 약국 세부
+export class PharmacyDetailDto {
+  @IsOptional() @Type(() => Boolean)
+  isDeliveryAvailable?: boolean;     // DB: pharmacies.is_delivery_available
+}
+
 export class BusinessHourDto {
   @Type(() => Number)
   @IsInt() @Min(0) @Max(6)
-  dayOfWeek!: number;                 // 0=일 ~ 6=토
+  dayOfWeek!: number;                // 0=일 ~ 6=토
 
-  // TIME 컬럼과 정합: "HH:mm" 또는 "HH:mm:ss"
+  // TIME: "HH:mm" 또는 "HH:mm:ss"
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/)
   openAt?: string;
@@ -38,7 +57,7 @@ export class BusinessHourDto {
 
 export class CreateFacilityDto {
   @IsEnum(FacilityType)
-  type!: FacilityType;                // 'HOSPITAL' | 'PHARMACY'
+  type!: FacilityType;               // 'HOSPITAL' | 'PHARMACY'
 
   @IsString() @Length(1, 120)
   name!: string;
@@ -58,32 +77,17 @@ export class CreateFacilityDto {
   @IsOptional() @Type(() => Number) @IsLongitude()
   lng?: number;
 
+  @IsOptional() @Type(() => Boolean)
+  isActive?: boolean;
+
   @IsArray() @ValidateNested({ each: true }) @Type(() => BusinessHourDto)
   @IsOptional()
   hours?: BusinessHourDto[];
 
-  // 병원/약국 세부 (선택 입력)
-  @IsOptional() @Type(() => HospitalDetailDto)
+  // 병원/약국 세부
+  @IsOptional() @ValidateNested() @Type(() => HospitalDetailDto)  
   hospital?: HospitalDetailDto;
 
-  @IsOptional() @Type(() => PharmacyDetailDto)
+  @IsOptional() @ValidateNested() @Type(() => PharmacyDetailDto)  
   pharmacy?: PharmacyDetailDto;
-}
-
-// 병원 세부
-export class HospitalDetailDto {
-  @IsOptional() @IsString()
-  licenseNo?: string;
-
-  @IsOptional() @IsString()
-  level?: string;
-
-  @IsOptional() @IsArray()
-  departments?: string[];             // DB: JSON
-}
-
-// 약국 세부
-export class PharmacyDetailDto {
-  @IsOptional() @Type(() => Boolean)
-  isDeliveryAvailable?: boolean;      // DB: pharmacies.is_delivery_available
 }

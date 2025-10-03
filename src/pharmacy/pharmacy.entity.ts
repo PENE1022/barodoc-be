@@ -1,19 +1,16 @@
-// src/pharmacies/entities/pharmacy.entity.ts
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
-import { Facility } from '../../src/facilities/entities/facilities.entity';
+import { Facility } from '../facilities/entities/facilities.entity';
 
 @Entity('pharmacies')
 export class Pharmacy {
-  @PrimaryColumn('uuid')
+  // PK=FK → facility_id (CHAR(36))
+  @PrimaryColumn('char', { length: 36, name: 'facility_id' })
   facilityId!: string;
 
   @OneToOne(() => Facility, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'facilityId' })
+  @JoinColumn({ name: 'facility_id' }) // FK 컬럼명 매핑 필수
   facility!: Facility;
 
-  @Column({ default: false })
-  isNightPharmacy!: boolean; // 심야약국
-
-  @Column({ default: false })
-  isDeliveryAvailable!: boolean; // 배달/조제전달(정책에 맞게 내부 플래그)
+  @Column({ name: 'is_delivery_available', type: 'boolean', default: false })
+  isDeliveryAvailable!: boolean;
 }

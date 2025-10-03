@@ -1,22 +1,21 @@
-// src/hospitals/entities/hospital.entity.ts
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
-import { Facility } from '../../src/facilities/entities/facilities.entity';
+import { Facility } from '../facilities/entities/facilities.entity'; 
 
 @Entity('hospitals')
 export class Hospital {
-  @PrimaryColumn('uuid')
+  @PrimaryColumn('char', { length: 36, name: 'facility_id' })
   facilityId!: string;
 
   @OneToOne(() => Facility, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'facilityId' })
+  @JoinColumn({ name: 'facility_id' })   // FK 컬럼명 DB와 동일
   facility!: Facility;
 
-  @Column({ length: 50, nullable: true })
-  licenseNo?: string; // 요양기관번호 등
+  @Column({ name: 'license_no', type: 'varchar', length: 50, unique: true, nullable: true })
+  licenseNo?: string | null;             
 
-  @Column({ length: 100, nullable: true })
-  level?: string; // 상급종합/종합/의원 등
+  @Column({ name: 'level',type: 'varchar', length: 100, nullable: true })
+  level?: string | null;                 
 
   @Column({ type: 'json', nullable: true })
-  departments?: string[]; // ["내과","소아청소년과"] 간단 버전
+  departments?: string[] | null;         
 }
