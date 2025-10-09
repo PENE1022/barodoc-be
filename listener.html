@@ -1,0 +1,17 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>BaroDoc Socket Listener</title>
+<pre id="log"></pre>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  const log = (m) => (document.getElementById('log').textContent += m + "\n");
+
+  // 병원 H1 로비 구독
+  const socket = io("http://localhost:3000/barodoc", { query: { hospitalId: "H1" } });
+  socket.on("connect",    () => log("[socket] connected " + socket.id));
+  socket.on("disconnect", () => log("[socket] disconnected"));
+
+  // 이벤트 수신 (BaroDoc 규약)
+  socket.on("bd:ticket.created", (t) => log("[번호 발급] " + JSON.stringify(t)));
+  socket.on("bd:ticket.called",  (t) => log("[호출됨]  " + JSON.stringify(t)));
+</script>
