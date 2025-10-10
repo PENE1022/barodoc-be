@@ -1,19 +1,13 @@
-<!doctype html>
-<meta charset="utf-8" />
-<title>BaroDoc Socket Listener</title>
-<pre id="log"></pre>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<!doctype html><html><head>
+<meta charset="utf-8"><title>BaroDoc Listener</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head><body><pre id="log"></pre>
 <script>
-  const log = (m) => (document.getElementById('log').textContent += m + "\n");
-
-  // 병원 H1 로비 구독
-  const socket = io("http://localhost:3000/api/barodoc/v1/tickets", { query: { hospitalId: "H1" } });
-
-  socket.on("connect",    () => log("[socket] connected " + socket.id));
-  socket.on("disconnect", () => log("[socket] disconnected"));
-
-  // 이벤트 수신 (BaroDoc 규약)
-  socket.on("bd:ticket.created", (t) => log("[번호 발급] " + JSON.stringify(t)));
-  socket.on("bd:ticket.called",  (t) => log("[호출됨]  " + JSON.stringify(t)));
-
-</script>
+const log=(...a)=>{document.getElementById('log').textContent+=a.map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' ')+'\n';}
+const hid='00277989-3410-5caa-b6ac-3cde6fbd76fd';
+const socket=io('http://localhost:3000/barodoc',{transports:['websocket'],query:{hospitalId:hid}});
+socket.on('debug:hello',(d)=>log('HELLO',d));
+socket.on('bd:ticket.created',(p)=>log('CREATED',p));
+socket.on('bd:ticket.called',(p)=>log('CALLED',p));
+socket.on('bd:snapshot',(p)=>log('SNAPSHOT',p));
+</script></body></html>
