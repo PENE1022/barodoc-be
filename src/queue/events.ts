@@ -1,5 +1,5 @@
 // 네임스페이스/룸/이벤트 컨벤션 (BaroDoc)
-export const NS = '/barodoc';
+export const NS = '/barodoc' as const;
 export const roomLobby = (hospitalId: string) => `lobby:${hospitalId}`;
 export const roomCounter = (h: string, c: string) => `counter:${h}:${c}`;
 

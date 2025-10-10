@@ -31,7 +31,7 @@ export class QueueController {
     return called;
   }
 
-  // 현재 병원별 대기 현황을 조회하는 기능 (GET)
+  // 현재 병원별 대기 현황을 조회하는 기능 (GET) -> 인원 대기열 시간 추가 및 인원 출력 
   @Get('snapshot')
   snapshot(@Query('hospitalId') hospitalId: string) {
     return this.svc.snapshot(hospitalId);

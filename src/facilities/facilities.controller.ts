@@ -12,6 +12,12 @@ export class FacilitiesController {
     return this.svc.findAll(query);
   }
 
+  // 모든 시설의 위도, 경도를 받는 기능
+  @Get('coords')
+  listCoords(@Query('active') active?: '0' | '1') {
+    return this.svc.listCoords(active === '0' ? 0 : 1);
+  }
+
   @Get(':id')
   async get(@Param('id') id: string) {
     const row = await this.svc.findOne(id);
@@ -23,5 +29,7 @@ export class FacilitiesController {
   create(@Body() dto: CreateFacilityDto) {
     return this.svc.createCascade(dto);
   }
+
+
 
 }

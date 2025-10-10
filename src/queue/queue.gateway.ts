@@ -2,7 +2,7 @@ import { WebSocketGateway, WebSocketServer, ConnectedSocket } from '@nestjs/webs
 import { Server, Socket } from 'socket.io';
 import { EV, NS, roomCounter, roomLobby } from './events';
 
-@WebSocketGateway({ namespace: NS, cors: { origin: '*' } })
+@WebSocketGateway({ namespace: NS, cors: { origin: '*' }})
 export class QueueGateway {
   @WebSocketServer() server!: Server;
 
@@ -13,6 +13,7 @@ export class QueueGateway {
 
     if (hospitalId) {
       client.join(roomLobby(hospitalId));
+      client.emit('debug:hello', { ns: NS, hospitalId }); // 연결 확인
       if (counterId) client.join(roomCounter(hospitalId, counterId));
     }
   }
@@ -30,4 +31,6 @@ export class QueueGateway {
     s.to(roomLobby(t.hospitalId)).emit(EV.CALLED, payload);
     s.to(roomCounter(t.hospitalId, t.counterId)).emit(EV.CALLED, payload);
   }
+
+  
 }
