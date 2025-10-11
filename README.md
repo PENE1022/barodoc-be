@@ -93,3 +93,20 @@
     ]
   }
 ```
+
+
+# 모든 시설의 ID 및 위도/경도 받는 기능
+- api/barodoc/v1/facilities/coords?active=1     (GET)
+- active=1 인 이유는 현재 영업 중인 시설 확인용.
+```
+    {
+        "total": 907,
+        "items": [
+            {
+                "id": "00277989-3410-5caa-b6ac-3cde6fbd76fd",
+                "lat": 37.402757,
+                "lng": 126.9105982
+            }, ....
+        ]
+    }
+```

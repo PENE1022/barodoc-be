@@ -1,15 +1,24 @@
-// src/queue/dto.ts
-import { IsString, Matches } from 'class-validator';
+import { IsString, Matches /*, IsUUID*/ } from 'class-validator';
 
 export type TicketStatus =
-  | '대기중'     // 대기 중
-  | '호출됨'      // 창구에서 호출됨
-  | '처리 완료'        // 처리 완료
-  | '접수 취소'   // 접수 취소
-  | '미응답';     // 호출했지만 미응답
+  | '대기중'
+  | '호출됨'
+  | '처리 완료'
+  | '접수 취소'
+  | '미응답';
 
+export const TS = {
+  WAITING: '대기중' as TicketStatus,
+  CALLED:  '호출됨' as TicketStatus,
+  DONE:    '처리 완료' as TicketStatus,
+  CANCEL:  '접수 취소' as TicketStatus,
+  NOSHOW:  '미응답' as TicketStatus,
+};
+
+// DTO
 export class IssueTicketDto {
-  @IsString()
+  // 병원ID가 UUID라면 IsUUID로 바꿔도 됨
+  @IsString() /* @IsUUID() */
   hospitalId!: string;
 
   @IsString()
@@ -18,16 +27,17 @@ export class IssueTicketDto {
 }
 
 export class CallNextDto {
-  @IsString()
+  @IsString() /* @IsUUID() */
   hospitalId!: string;
 }
 
+// 엔티티 인터페이스(메모리용)
 export interface Ticket {
-  id: string;           // 전역 유니크 ID (예: T1738...abcd)
-  hospitalId: string;   // 병원 식별자
-  counterId: string;    // 창구 식별자
-  number: number;       // 사람이 보는 연속번호(창구/일자 기준 증가)
-  status: TicketStatus; // WAITING → CALLED → DONE/CANCELLED/NOSHOW
-  createdAt: number;    // epoch ms
-  updatedAt: number;    // epoch ms
+  id: string;
+  hospitalId: string;
+  counterId: string;
+  number: number;
+  status: TicketStatus;
+  createdAt: number;
+  updatedAt: number;
 }

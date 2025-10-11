@@ -189,4 +189,27 @@ export class FacilitiesService {
     await this.hourRepo.delete(hourId);
     return { ok: true };
   }
+
+    /** 시설 ID와 위도/경도 (활성 + 좌표 존재) */
+  async listCoords(active: 0 | 1 = 1) {
+  const qb = this.facilityRepo.createQueryBuilder('f')
+    .select('f.id', 'id')
+    .addSelect('f.lat', 'lat')
+    .addSelect('f.lng', 'lng')
+    .addSelect('f.type', 'type') // ⬅️ 추가
+    .where('f.deletedAt IS NULL')
+    .andWhere('f.lat IS NOT NULL AND f.lng IS NOT NULL');
+
+  if (active === 1) qb.andWhere('f.isActive = TRUE');
+  if (active === 0) qb.andWhere('f.isActive = FALSE');
+
+  const raws = await qb.getRawMany<{ id:string; lat:string|number; lng:string|number; type:FacilityType }>();
+  const items = raws.map(r => ({
+    id: r.id,
+    lat: typeof r.lat === 'string' ? parseFloat(r.lat) : r.lat,
+    lng: typeof r.lng === 'string' ? parseFloat(r.lng) : r.lng,
+    type: r.type,
+    }));
+    return { total: items.length, items };
+  }
 }

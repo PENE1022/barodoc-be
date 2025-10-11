@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Ticket } from './dto';
+import { Ticket, TS } from './dto';
 
 type Key = string; // `${hospitalId}:${counterId}`
 const k = (h: string, c: string) => `${h}:${c}`;
@@ -19,7 +19,7 @@ export class QueueService {
       id: `T${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
       hospitalId, counterId,
       number: next,
-      status: '대기중',
+      status: TS.WAITING,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -36,15 +36,16 @@ export class QueueService {
     const q = this.waiting.get(key) ?? [];
     const next = q.shift();
     if (!next) return null;
-    next.status = '호출됨';
+
+    next.status = TS.CALLED;
     next.updatedAt = Date.now();
+
     this.waiting.set(key, q);
     this.byId.set(next.id, next);
     return next;
   }
 
   snapshot(hospitalId: string) {
-    // 특정 병원만 필터링
     const counters: Record<string, { last: number; waiting: Ticket[] }> = {};
     for (const [key, last] of this.seq.entries()) {
       const [h, c] = key.split(':');

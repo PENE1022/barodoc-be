@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbPingController } from './db-ping.controller';
 import { FacilitiesModule } from './facilities/facilities.module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { FacilitiesModule } from './facilities/facilities.module';
         logging: true,         // 연결/쿼리 로그 보고 싶을 때
       }),
     }),
-    FacilitiesModule
+    FacilitiesModule,
+    QueueModule,
   ],
   controllers: [
     DbPingController,
