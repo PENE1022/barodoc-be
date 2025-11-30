@@ -53,6 +53,9 @@ export class QueueGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   emitUpdated(hospitalId: string, payload: any) {
-    this.server?.to(roomLobby(hospitalId)).emit(EV.UPDATED, payload);
+  this.server?.to(roomLobby(hospitalId)).emit('bd:ticket.updated', payload);
+  if (payload?.counterId) {
+    this.server?.to(roomCounter(hospitalId, payload.counterId)).emit('bd:ticket.updated', payload);
   }
+}
 }
